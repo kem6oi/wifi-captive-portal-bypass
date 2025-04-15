@@ -1,18 +1,17 @@
 #!/bin/bash
 
-# Check if script is run as root
 if [[ $EUID -ne 0 ]]; then
    echo "This script must be run as root. Use sudo."
    exit 1
 fi
 
-# Colors
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+NC='\033[0m' 
 
-# Load config
+
 CONFIG_FILE="config.conf"
 if [ -f "$CONFIG_FILE" ]; then
     source "$CONFIG_FILE"
@@ -21,7 +20,7 @@ else
     echo -e "${YELLOW}Config file $CONFIG_FILE not found. Using default interface: $INTERFACE${NC}"
 fi
 
-# Check if required scripts exist
+
 for script in mon.sh nom.sh mac_changer.sh; do
     if [ ! -f "$script" ]; then
         echo -e "${RED}Required script $script not found in the current directory.${NC}"
@@ -33,12 +32,11 @@ for script in mon.sh nom.sh mac_changer.sh; do
     fi
 done
 
-# Check if mac_addresses.txt exists
 if [ ! -f "macs.txt" ]; then
     echo -e "${YELLOW}Warning: macs.txt not found. Required for MAC address changing.${NC}"
 fi
 
-# Function to check if interface exists
+# check if interface exists
 check_interface() {
     if ! ip link show "$INTERFACE" > /dev/null 2>&1; then
         echo -e "${RED}Interface $INTERFACE not found. Please check your network interface name.${NC}"
@@ -46,7 +44,6 @@ check_interface() {
     fi
 }
 
-# Display Vikk banner
 echo -e "${GREEN}"
 cat << "EOF"
  __      __ _ _    
@@ -59,7 +56,7 @@ EOF
 echo -e "Network Tool by Vikk${NC}"
 echo "---------------------------"
 
-# Prompt for network interface
+
 echo -e "${YELLOW}Current default interface: $INTERFACE${NC}"
 read -p "Enter your network interface (press Enter to use default): " user_interface
 if [ -n "$user_interface" ]; then
