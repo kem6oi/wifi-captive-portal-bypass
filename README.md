@@ -45,3 +45,5 @@ INTERFACE="wlan0"
     Requires all scripts in the same directory
     May disrupt connectivity
     Interface must support mode switching and MAC spoofing
+## DISCLAIMER 
+THIS SCRIPT SHOULD ONLY BE USED IN NETWORKS YOU OWN OR HAVE EXCLUSIVE PERMISSION TO. 
