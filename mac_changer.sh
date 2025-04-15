@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# Check if script is run as root
+# run as root
 if [[ $EUID -ne 0 ]]; then
    echo "This script must be run as root. Use sudo."
    exit 1
 fi
 
-# Colors
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -18,19 +18,19 @@ INTERFACE=${INTERFACE:-"wlp3s0b1"}
 # Path to the MAC address list file
 MAC_LIST="macs.txt"
 
-# Check if interface exists
+
 if ! ip link show "$INTERFACE" > /dev/null 2>&1; then
     echo -e "${RED}Interface $INTERFACE not found. Please check your network interface name.${NC}"
     exit 1
 fi
 
-# Check if MAC address list file exists
+
 if [ ! -f "$MAC_LIST" ]; then
     echo -e "${RED}MAC address list file ($MAC_LIST) not found. Please create it with a list of MAC addresses.${NC}"
     exit 1
 fi
 
-# Function to change MAC address
+
 change_mac() {
     local mac=$1
     echo -e "${GREEN}Setting $INTERFACE down...${NC}"
@@ -41,7 +41,7 @@ change_mac() {
     ip link set "$INTERFACE" up
 }
 
-# Function to check internet connectivity
+
 check_connection() {
     ping -c 1 -W 2 google.com > ping_output.txt 2>/dev/null
     if grep -q "64 bytes" ping_output.txt; then
@@ -55,7 +55,7 @@ check_connection() {
     fi
 }
 
-# Read MAC addresses from file and try each one
+
 while IFS= read -r mac; do
     [[ -z "$mac" || "$mac" =~ ^# ]] && continue
 
