@@ -1,0 +1,31 @@
+# MAC Address List for Captive Portal Bypass
+# Add one MAC address per line in the format: XX:XX:XX:XX:XX:XX
+# Lines starting with # are ignored
+#
+# Strategy: Use MAC addresses that may have already been authorized on the network
+# Common approach: Use addresses from popular device manufacturers
+
+# Example MAC addresses (replace with your own or use for testing)
+# Apple devices (common in public WiFi)
+00:1B:63:84:45:E6
+00:23:32:3C:3A:9A
+00:26:BB:1E:0D:6A
+
+# Samsung devices
+00:12:FB:A1:2C:3D
+00:1E:E1:DB:4F:8C
+
+# Dell laptops
+00:1A:A0:12:34:56
+00:21:70:AB:CD:EF
+
+# HP devices
+00:1F:29:78:90:AB
+00:24:81:CD:EF:12
+
+# Lenovo devices
+00:21:86:34:56:78
+00:23:AE:90:AB:CD
+
+# Add your own MAC addresses below:
+

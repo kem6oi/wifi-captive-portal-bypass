@@ -1,4 +1,7 @@
 #!/bin/bash
+# MAC Address Changer Script
+# Purpose: Cycles through MAC addresses to bypass captive portal restrictions
+# Note: Automatically restores original MAC if no connection is found
 
 # run as root
 if [[ $EUID -ne 0 ]]; then
@@ -30,6 +33,38 @@ if [ ! -f "$MAC_LIST" ]; then
     exit 1
 fi
 
+# Save original MAC address
+ORIGINAL_MAC=$(ip link show "$INTERFACE" | grep ether | awk '{print $2}')
+echo -e "${YELLOW}Original MAC address: $ORIGINAL_MAC${NC}"
+
+# Cleanup function to restore original MAC
+cleanup() {
+    echo -e "\n${YELLOW}Cleaning up...${NC}"
+    if [ -n "$ORIGINAL_MAC" ]; then
+        echo -e "${GREEN}Restoring original MAC address: $ORIGINAL_MAC${NC}"
+        ip link set "$INTERFACE" down
+        ip link set "$INTERFACE" address "$ORIGINAL_MAC"
+        ip link set "$INTERFACE" up
+    fi
+    # Clean up temporary files
+    rm -f ping_output.txt
+    echo -e "${GREEN}Cleanup complete.${NC}"
+    exit 0
+}
+
+# Set up trap to catch signals
+trap cleanup SIGINT SIGTERM EXIT
+
+
+# Validate MAC address format
+validate_mac() {
+    local mac=$1
+    if [[ $mac =~ ^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$ ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
 
 change_mac() {
     local mac=$1
@@ -59,6 +94,12 @@ check_connection() {
 while IFS= read -r mac; do
     [[ -z "$mac" || "$mac" =~ ^# ]] && continue
 
+    # Validate MAC address format
+    if ! validate_mac "$mac"; then
+        echo -e "${RED}Invalid MAC address format: $mac (skipping)${NC}"
+        continue
+    fi
+
     echo -e "${YELLOW}Trying MAC address: $mac${NC}"
     change_mac "$mac"
 
@@ -68,6 +109,9 @@ while IFS= read -r mac; do
         echo -e "${GREEN}Internet connection established with MAC: $mac${NC}"
         echo -e "${GREEN}Current MAC address:${NC}"
         ip link show "$INTERFACE" | grep ether
+        # Disable cleanup trap since we want to keep the working MAC
+        trap - EXIT
+        echo -e "${GREEN}Success! Keeping MAC address: $mac${NC}"
         exit 0
     else
         echo -e "${YELLOW}Failed to connect with $mac. Trying next address...${NC}"
@@ -75,4 +119,4 @@ while IFS= read -r mac; do
 done < "$MAC_LIST"
 
 echo -e "${RED}Exhausted all MAC addresses in the list. No connection established.${NC}"
-exit 1
+# Cleanup will be called by EXIT trap
