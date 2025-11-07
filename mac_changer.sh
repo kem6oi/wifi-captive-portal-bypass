@@ -46,8 +46,6 @@ cleanup() {
         ip link set "$INTERFACE" address "$ORIGINAL_MAC"
         ip link set "$INTERFACE" up
     fi
-    # Clean up temporary files
-    rm -f ping_output.txt
     echo -e "${GREEN}Cleanup complete.${NC}"
     exit 0
 }
@@ -55,6 +53,74 @@ cleanup() {
 # Set up trap to catch signals
 trap cleanup SIGINT SIGTERM EXIT
 
+# Check if curl or wget is available
+if command -v curl &> /dev/null; then
+    HTTP_CLIENT="curl"
+elif command -v wget &> /dev/null; then
+    HTTP_CLIENT="wget"
+else
+    echo -e "${RED}Error: Neither curl nor wget found. Please install one of them.${NC}"
+    exit 1
+fi
+
+# Detect if a captive portal is present
+detect_captive_portal() {
+    local portal_detected=false
+
+    echo -e "${YELLOW}Testing for captive portal...${NC}"
+
+    # Test Google's connectivity check (expects 204 No Content)
+    if [ "$HTTP_CLIENT" = "curl" ]; then
+        local response=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 http://connectivitycheck.gstatic.com/generate_204 2>/dev/null)
+        if [ "$response" = "204" ]; then
+            echo -e "${GREEN}✓ Google connectivity check passed (204)${NC}"
+            return 0
+        else
+            echo -e "${YELLOW}✗ Google connectivity check failed (got $response, expected 204)${NC}"
+            portal_detected=true
+        fi
+    else
+        # wget doesn't easily give us status codes, so we'll use curl-style checks with other methods
+        if wget -q --spider --timeout=5 http://connectivitycheck.gstatic.com/generate_204 2>/dev/null; then
+            echo -e "${GREEN}✓ Connectivity check passed${NC}"
+            return 0
+        else
+            echo -e "${YELLOW}✗ Connectivity check failed${NC}"
+            portal_detected=true
+        fi
+    fi
+
+    # Test Apple's captive portal detection (expects "Success")
+    if [ "$HTTP_CLIENT" = "curl" ]; then
+        local apple_response=$(curl -s --max-time 5 http://captive.apple.com/hotspot-detect.html 2>/dev/null)
+        if echo "$apple_response" | grep -q "<HTML><HEAD><TITLE>Success</TITLE></HEAD><BODY>Success</BODY></HTML>"; then
+            echo -e "${GREEN}✓ Apple connectivity check passed${NC}"
+            return 0
+        else
+            echo -e "${YELLOW}✗ Apple connectivity check failed${NC}"
+            portal_detected=true
+        fi
+    fi
+
+    # Test Microsoft's connectivity test (expects "Microsoft Connect Test")
+    if [ "$HTTP_CLIENT" = "curl" ]; then
+        local ms_response=$(curl -s --max-time 5 http://www.msftconnecttest.com/connecttest.txt 2>/dev/null)
+        if echo "$ms_response" | grep -q "Microsoft Connect Test"; then
+            echo -e "${GREEN}✓ Microsoft connectivity check passed${NC}"
+            return 0
+        else
+            echo -e "${YELLOW}✗ Microsoft connectivity check failed${NC}"
+            portal_detected=true
+        fi
+    fi
+
+    if [ "$portal_detected" = true ]; then
+        echo -e "${RED}⚠ Captive portal detected - internet access restricted${NC}"
+        return 1
+    fi
+
+    return 1
+}
 
 # Validate MAC address format
 validate_mac() {
@@ -78,14 +144,31 @@ change_mac() {
 
 
 check_connection() {
-    ping -c 1 -W 2 google.com > ping_output.txt 2>/dev/null
-    if grep -q "64 bytes" ping_output.txt; then
-        echo -e "${GREEN}Connection successful with 64 bytes response.${NC}"
-        rm ping_output.txt
+    echo -e "${YELLOW}Testing network connectivity...${NC}"
+
+    # First, check basic network connectivity with ping
+    local ping_success=false
+    for target in 8.8.8.8 1.1.1.1; do
+        if ping -c 1 -W 2 "$target" > /dev/null 2>&1; then
+            echo -e "${GREEN}✓ Network layer connectivity confirmed (ping to $target)${NC}"
+            ping_success=true
+            break
+        fi
+    done
+
+    if [ "$ping_success" = false ]; then
+        echo -e "${RED}✗ No network connectivity - cannot reach internet${NC}"
+        return 1
+    fi
+
+    # Now check if there's a captive portal blocking us
+    if detect_captive_portal; then
+        echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo -e "${GREEN}✓ SUCCESS: Full internet access - NO captive portal!${NC}"
+        echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
         return 0
     else
-        echo -e "${YELLOW}No connection detected.${NC}"
-        rm ping_output.txt
+        echo -e "${YELLOW}Network accessible but captive portal blocking traffic${NC}"
         return 1
     fi
 }
