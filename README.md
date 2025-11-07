@@ -10,6 +10,7 @@ A suite of Bash scripts for managing wireless interfaces on Linux, orchestrated 
 - `mon.sh`: Switches to monitor mode
 - `nom.sh`: Restores managed mode
 - `mac_changer.sh`: Changes MAC address from a list
+- `mac_scanner.sh`: Scans network for MACs and tests authentication
 
 ## Prerequisites
 - Linux with wireless capabilities
@@ -41,6 +42,20 @@ INTERFACE="wlan0"
     macs.txt: List of MAC addresses
 
 ## Features
+
+### MAC Address Scanner & Validator
+The tool includes an automated MAC address discovery and testing system:
+- **Multi-method scanning**: ARP table, DHCP leases, and monitor mode capture
+- **Automatic authentication testing**: Tests each MAC to verify network access
+- **Smart filtering**: Automatically removes unauthenticated MACs from list
+- **Batch processing**: Scans and tests dozens of MACs automatically
+- **Safe operation**: Backs up existing MAC list and restores original MAC after testing
+
+The scanner will:
+1. Discover all MAC addresses active on the network
+2. Optionally test each MAC for captive portal bypass
+3. Save only authenticated MACs to macs.txt
+4. Provide detailed statistics on success/failure rates
 
 ### Captive Portal Detection
 The tool includes sophisticated captive portal detection that:

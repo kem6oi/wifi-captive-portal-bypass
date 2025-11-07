@@ -53,7 +53,7 @@ else
 fi
 
 
-for script in mon.sh nom.sh mac_changer.sh; do
+for script in mon.sh nom.sh mac_changer.sh mac_scanner.sh; do
     if [ ! -f "$script" ]; then
         echo -e "${RED}Required script $script not found in the current directory.${NC}"
         exit 1
@@ -102,8 +102,9 @@ while true; do
     echo -e "${YELLOW}1. Switch to Monitor Mode${NC}"
     echo -e "${YELLOW}2. Switch to Managed Mode${NC}"
     echo -e "${YELLOW}3. Change MAC Address${NC}"
-    echo -e "${YELLOW}4. Exit${NC}"
-    read -p "Enter your choice (1-4): " choice
+    echo -e "${YELLOW}4. Scan & Test Network MACs${NC}"
+    echo -e "${YELLOW}5. Exit${NC}"
+    read -p "Enter your choice (1-5): " choice
 
     case $choice in
         1)
@@ -119,11 +120,15 @@ while true; do
             ./mac_changer.sh
             ;;
         4)
+            echo -e "${GREEN}Scanning Network for MAC Addresses...${NC}"
+            ./mac_scanner.sh
+            ;;
+        5)
             echo -e "${GREEN}Exiting...${NC}"
             exit 0
             ;;
         *)
-            echo -e "${RED}Invalid choice. Please enter a number between 1 and 4.${NC}"
+            echo -e "${RED}Invalid choice. Please enter a number between 1 and 5.${NC}"
             ;;
     esac
 done
