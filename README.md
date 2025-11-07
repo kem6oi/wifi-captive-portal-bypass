@@ -14,7 +14,7 @@ A suite of Bash scripts for managing wireless interfaces on Linux, orchestrated 
 ## Prerequisites
 - Linux with wireless capabilities
 - Root privileges (sudo)
-- Tools: `airmon-ng`, `iwconfig`, `ifconfig`, `ip`, `ping`, NetworkManager
+- Tools: `airmon-ng`, `iw`, `ip`, `ping`, NetworkManager
 - `macs.txt` file (e.g., `00:11:22:33:44:55` per line)
 
 ## Installation
@@ -28,7 +28,7 @@ chmod +x *.sh
 ```
 ## Usage
 ```bash
-sudo ./network_tool.sh
+sudo ./network.sh
 ```
 
 ## Configuration
@@ -38,7 +38,7 @@ INTERFACE="wlan0"
 ## Files
 
     config.conf: Default settings
-    mac_addresses.txt: List of MAC addresses
+    macs.txt: List of MAC addresses
 
 ## Notes
 

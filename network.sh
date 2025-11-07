@@ -1,4 +1,6 @@
 #!/bin/bash
+# WiFi Network Tool Suite
+# Main script providing interface to monitor mode, managed mode, and MAC changing tools
 
 if [[ $EUID -ne 0 ]]; then
    echo "This script must be run as root. Use sudo."
@@ -9,8 +11,33 @@ fi
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-NC='\033[0m' 
+NC='\033[0m'
 
+# Check for required dependencies
+check_dependencies() {
+    local missing_deps=()
+    local required_commands=("ip" "iw" "ping")
+
+    for cmd in "${required_commands[@]}"; do
+        if ! command -v "$cmd" &> /dev/null; then
+            missing_deps+=("$cmd")
+        fi
+    done
+
+    # Check for optional but recommended tools
+    if ! command -v "airmon-ng" &> /dev/null; then
+        echo -e "${YELLOW}Warning: airmon-ng not found. Monitor mode functionality will be limited.${NC}"
+    fi
+
+    if [ ${#missing_deps[@]} -gt 0 ]; then
+        echo -e "${RED}Error: Missing required dependencies: ${missing_deps[*]}${NC}"
+        echo -e "${YELLOW}Please install the missing packages and try again.${NC}"
+        exit 1
+    fi
+}
+
+# Run dependency check
+check_dependencies
 
 CONFIG_FILE="config.conf"
 if [ -f "$CONFIG_FILE" ]; then
