@@ -14,7 +14,7 @@ A suite of Bash scripts for managing wireless interfaces on Linux, orchestrated 
 ## Prerequisites
 - Linux with wireless capabilities
 - Root privileges (sudo)
-- Tools: `airmon-ng`, `iw`, `ip`, `ping`, NetworkManager
+- Tools: `airmon-ng`, `iw`, `ip`, `ping`, `curl` or `wget`, NetworkManager
 - `macs.txt` file (e.g., `00:11:22:33:44:55` per line)
 
 ## Installation
@@ -40,10 +40,25 @@ INTERFACE="wlan0"
     config.conf: Default settings
     macs.txt: List of MAC addresses
 
+## Features
+
+### Captive Portal Detection
+The tool includes sophisticated captive portal detection that:
+- Tests multiple connectivity endpoints (Google, Apple, Microsoft)
+- Distinguishes between network access and actual internet access
+- Provides clear feedback on bypass success vs captive portal presence
+- Uses industry-standard detection methods employed by major operating systems
+
+When testing MAC addresses, the tool will:
+1. Check basic network connectivity (ping)
+2. Test HTTP endpoints to detect captive portal redirects
+3. Verify full internet access before declaring success
+
 ## Notes
 
     Requires all scripts in the same directory
     May disrupt connectivity
     Interface must support mode switching and MAC spoofing
+    Captive portal detection requires curl or wget
 ## DISCLAIMER 
 THIS SCRIPT SHOULD ONLY BE USED IN NETWORKS YOU OWN OR HAVE EXCLUSIVE PERMISSION TO. 

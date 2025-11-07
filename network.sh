@@ -24,6 +24,11 @@ check_dependencies() {
         fi
     done
 
+    # Check for HTTP client (required for captive portal detection)
+    if ! command -v "curl" &> /dev/null && ! command -v "wget" &> /dev/null; then
+        missing_deps+=("curl or wget")
+    fi
+
     # Check for optional but recommended tools
     if ! command -v "airmon-ng" &> /dev/null; then
         echo -e "${YELLOW}Warning: airmon-ng not found. Monitor mode functionality will be limited.${NC}"
